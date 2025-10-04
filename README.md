@@ -285,7 +285,7 @@ begin
 end architecture rtl;
 ```
 
-### 5. Codifica en VHDL un sistema secuencial
+### 5. Codifica en VHDL un sistema secuencial y completa el cronograma
 
 * **Objetivo**: Implementa el sistema para que la salida (z) cumpla:
 
@@ -379,3 +379,96 @@ end architecture rtl;
 * **Objetivo**: Completar el cronograma:
 
 ![Cronograma del ejercicio 5](./ej5_2.png)
+
+### 6. Sobre una FSM Mealy
+
+![FSM Mealy del ejercicio 6](./ej6_1.png)
+
+* **Objetivo**: Reconoce el patrón detectado
+
+La única combinación que resulta en '1' es aquella cuya en el **S3** recibe una **entrada de valor A**.
+
+Para llegar ahí se necesita:
+
+S0 - B -> S1 - A -> S2 - B -> S3 - A -> S2
+
+Es decir: BABA. Sin embargo para volver a obtener un 1 necesitaríamos:
+
+S2 - B -> S3 - A -> S2
+
+Por tanto, el patrón es "BABA"
+
+* **Objetivo**: Implementar en VHDL
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity seq_detector is
+  port (
+    clk: in std_logic;
+    rst: in std_logic;
+    x: in std_logic;
+    z: out std_logic
+  );
+end seq_detector;
+
+architecture rtl of seq_detector is
+  type state_type is (S0, S1, S2, S3);
+  signal state, next_state : state_type;
+  
+begin
+  change_state : process (clk, reset)
+  begin
+    if reset = '1' then
+      state <= S0;
+    elsif rising_edge(clk) then
+      state <= next_state;
+    end if;
+  end process change_state;
+
+  calc_state_out : process (state, x)
+  begin
+    next_state <= state;
+    z <= '0';
+
+    case state is
+      when S0 =>
+        if x = '0' then
+          next_state <= S0;
+        elsif x = '1' then
+          next_state <= S1;
+        end if;
+
+      when S1 =>
+        if x = '0' then
+          next_state <= S2;
+        elsif x = '1' then
+          next_state <= S1;
+        end if;
+
+      when S2 =>
+        if x = '0' then
+          next_state <= S0;
+        elsif x = '1' then
+          next_state <= S3;
+        end if;
+      
+      when S3 =>
+        if x = '0' then
+          next_state <= S2;
+          z <= '1':
+        elsif x = '1' then
+          next_state <= S1;
+        end if;
+
+      when others =>
+        next_state <= S0;
+    end case;
+  end process calc_state_out;
+end architecture rtl;
+```
+
+* **Objetivo**: Completar el cronograma:
+
+![Cronograma del ejercicio 6](./ej6_2.png)
