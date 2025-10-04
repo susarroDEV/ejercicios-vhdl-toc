@@ -221,5 +221,161 @@ end architecture rtl;
 
 * **Objetivo**: Implementa este boceto
 
-![Diagrama del ejercicio 4](ej4.png)
+![Diagrama del ejercicio 4](./ej4.png)
 
+He decidido que las entradas sean de **4 bits** como en el **ejercicio 1**.
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity xor_gate is
+  port (
+    e1: in std_logic_vector(3 downto 0);
+    e2: in std_logic_vector(3 downto 0);
+    s: out std_logic_vector(3 downto 0)
+  );
+end xor_gate;
+
+architecture rtl of xor_gate is
+begin 
+  s <= e1 xor e2;
+end architecture rtl;
+
+entity comb is
+  port (
+    A0: in std_logic_vector(3 downto 0);
+    A1: in std_logic_vector(3 downto 0);
+    A2: in std_logic_vector(3 downto 0);
+    A3: in std_logic_vector(3 downto 0);
+    extra: out std_logic_vector(3 downto 0)
+  );
+end comb;
+
+architecture rtl of comb is
+  component xor_gate
+    port (
+      e1: in std_logic_vector(3 downto 0);
+      e2: in std_logic_vector(3 downto 0);
+      s: out std_logic_vector(3 downto 0)
+    );
+  end component;
+
+  signal temp1, temp2: std_logic_vector(3 downto 0);
+
+begin
+  xor1: xor_gate port map (
+    e1 => A0,
+    e2 => A1,
+    s => temp1
+  );
+
+  xor2: xor_gate port map (
+    e1 => A2,
+    e2 => A3,
+    s => temp2
+  );
+
+  xor3: xor_gate port map (
+    e1 => temp1,
+    e2 => temp2,
+    s => extra
+  );
+
+end architecture rtl;
+```
+
+### 5. Codifica en VHDL un sistema secuencial
+
+* **Objetivo**: Implementa el sistema para que la salida (z) cumpla:
+
+$$
+z(t) =
+\begin{cases}
+1 & \text{si } x(t-2, t-1, t) = 'aaa' \text{ o } 'bbb' \\
+0 & \text{en otro caso}
+\end{cases}
+$$
+
+![Maquina Mealy de estados del ejercicio 5](./ej5_1.png)
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity seq_detector is
+  port (
+    clk : in std_logic;
+    reset : in std_logic;
+    x : in std_logic;
+    z : out std_logic
+  );
+end seq_detector;
+
+architecture rtl of seq_detector is
+  type state_type is (EI, S0, S1, S2, S3);
+  signal state, next_state : state_type;
+
+begin
+  change_state : process (clk, reset)
+  begin
+    if reset = '1' then
+      state <= EI;
+    elsif rising_edge(clk) then
+      state <= next_state;
+    end if;
+  end process change_state;
+
+  calc_state_out : process (state, x)
+  begin
+    next_state <= state;
+    z <= '0';
+
+    case state is
+      when EI =>
+        if x = '0' then
+          next_state <= S0;
+        elsif x = '1' then
+          next_state <= S1;
+        end if;
+      
+      when S0 =>
+        if x = '0' then
+          next_state <= S2;
+        elsif x = '1' then
+          next_state <= S1;
+        end if;
+
+      when S1 =>
+        if x = '0' then
+          next_state <= S0;
+        elsif x = '1' then
+          next_state <= S3;
+        end if;
+
+      when S2 =>
+        if x = '0' then
+          next_state <= S2;
+          z <= '1';
+        elsif x = '1' then
+          next_state <= S1;
+        end if;
+
+      when S3 =>
+        if x = '0' then
+          next_state <= S0;
+        elsif x = '1' then
+          next_state <= S3;
+          z <= '1';
+        end if;
+
+      when others =>
+        next_state <= EI;
+    end case;
+  end process calc_state_out;
+end architecture rtl;
+```
+
+* **Objetivo**: Completar el cronograma:
+
+![Cronograma del ejercicio 5](./ej5_2.png)
