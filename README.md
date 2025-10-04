@@ -472,3 +472,53 @@ end architecture rtl;
 * **Objetivo**: Completar el cronograma:
 
 ![Cronograma del ejercicio 6](./ej6_2.png)
+
+### 7. Codifica un desplazador en VHDL
+
+* **Restricción**: No utilizar la instrucción de VHDL SLL
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity shifter is 
+  port (
+    clk : in  std_logic;
+    rst : in  std_logic;
+    ctrl : in  std_logic_vector(2 downto 0);
+    x : in  std_logic_vector(7 downto 0);
+    z : out std_logic_vector(7 downto 0)
+  );
+end shifter;
+
+architecture rtl of shifter is
+  signal temp : std_logic_vector(7 downto 0);
+begin
+  shift : process(clk, rst)
+  begin
+    if rst = '1' then
+      temp <= (others => '0');
+    elsif rising_edge(clk) then
+      case ctrl is
+        when "000" => temp <= x;
+        when "001" => temp <= x(6 downto 0) & '0';
+        when "010" => temp <= x(5 downto 0) & "00";
+        when "011" => temp <= x(4 downto 0) & "000";
+        when "100" => temp <= x(3 downto 0) & "0000";
+        when "101" => temp <= x(2 downto 0) & "00000";
+        when "110" => temp <= x(1 downto 0) & "000000";
+        when others => temp <= x(0) & "0000000";
+      end case;
+    end if;
+  end process shift;
+  z <= temp;
+end architecture rtl;
+```
+
+### 8. Dibuja una descripción RTL equivalente del circuito en VHDL
+
+![Estructura del ejercicio 8](./ej8_1.png)
+
+![Diagrama RTL del ejercicio 8](./ej8_2.png)
+
+### 9. 
