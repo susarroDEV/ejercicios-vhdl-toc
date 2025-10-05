@@ -418,9 +418,9 @@ architecture rtl of seq_detector is
   signal state, next_state : state_type;
   
 begin
-  change_state : process (clk, reset)
+  change_state : process (clk, rst)
   begin
-    if reset = '1' then
+    if rst = '1' then
       state <= S0;
     elsif rising_edge(clk) then
       state <= next_state;
@@ -521,4 +521,136 @@ end architecture rtl;
 
 ![Diagrama RTL del ejercicio 8](./ej8_2.png)
 
-### 9. 
+### 9. Codifica una FSM sintetizable en VHDL
+
+* **Objetivo**: Adaptar el siguiente código para crear una FSM equivalente y sintetizable
+* He decidido implementar este sistema como una máquina de Moore (la salida "solo" depende del estado)
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity even_detector is
+  port (
+    clk: in std_logic;
+    rst: in std_logic;
+    x: in std_logic;
+    start: in std_logic;
+    even: out std_logic;
+  );
+end even_detector;
+
+architecture rtl of even_detector is
+  type state_type is (EVEN, ODD);
+  signal state, next_state: state_type;
+begin
+  change_state : process (clk, rst)
+  begin
+    if rst = '1' then
+      state <= EVEN;
+    elsif rising_edge(clk) then
+      state <= next_state;
+    end if;
+  end process change_state;
+
+  calc_state_out : process (state, x, start)
+  begin
+    next_state <= state;
+
+    if start = '1' then
+      case state is
+        when EVEN =>
+          if x = '1' then
+            next_state <= ODD;
+          else
+            next_state <= EVEN;
+          end if;
+
+        when ODD =>
+          if x = '1' then
+            next_state <= EVEN;
+          else
+            next_state <= ODD;
+          end if;
+      end case;
+    end if;
+
+    if state = EVEN then
+      even <= '1';
+    else
+      even <= '0';
+    end if;
+  end process calc_state_out;
+end architecture rtl;
+```
+
+### 10. Codifica un sistema secuencial en VHDL
+
+* **Objetivo**: Implementar en VHDL este diagrama de una máquina Mealy
+
+![FSM Mealy del ejercicio 10](./ej10.png)
+
+```vhdl
+entity seq_detector is
+  port (
+    clk: in std_logic;
+    rst: in std_logic;
+    x: in std_logic;
+    z: out std_logic
+  );
+end seq_detector;
+
+architecture rtl of seq_detector is
+  type state_type is (S0, S1, S2, S3);
+  signal state, next_state : state_type;
+begin
+  change_state: process(clk, rst)
+  begin
+    if rst = '1' then
+      state <= S0;
+    elsif rising_edge(clk) then
+      state <= next_state;
+    end if;
+  end process change_state;
+
+  calc_state_out: process(state, x)
+  begin
+    next_state <= state;
+    z <= '0';
+
+    case state is
+      when S0 =>
+        if x = '1' then
+          next_state <= S0;
+        else
+          next_state <= S1;
+        end if;
+      
+      when S1 =>
+        if x = '1' then
+          next_state <= S0;
+        else
+          next_state <= S2;
+        end if;
+
+      when S2 =>
+        if x = '1' then
+          next_state <= S3;
+        else
+          next_state <= S2;
+        end if;
+
+      when S3 =>
+        if x = '1' then
+          next_state <= S0;
+          z <= '1';
+        else
+          next_state <= S1;
+        end if;
+
+      when others =>
+        next_state <= S0;
+    end case;
+  end process calc_state_out;
+end architecture rtl;
+```
