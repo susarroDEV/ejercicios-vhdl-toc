@@ -654,3 +654,285 @@ begin
   end process calc_state_out;
 end architecture rtl;
 ```
+
+### 11. Diseña una lavadora en VHDL
+
+* **Objetivo**: Codificar en VHDL una lavadora con las siguientes especificaciones:
+
+1. clk: señal de reloj
+2. rst: señal de reset a bajo nivel
+3. dos entradas: inicio/parada (1bit) y ciclo rápido (1bit)
+4. entrada: start/stop para arrancar y detener la máquina
+5. ciclo rápido indica modo de lavado: rápido o lento
+6. cinco salidas: entrada de agua, calentar agua, mover paletas, secar y abrir detergente
+7. en estado inicial todas las salidas están a 0
+8. desde cualquier estado se vuelve al inicial con inicio/parada a 0 hasta que pase a 1
+9. el lavado tiene tres etapas: lavado ((2 rápido / 4 lento) ciclos), enjuague ((1 rápido / 2 lento) ciclo(s)) y secado (1 ciclo)
+10. tras el secado se regresa al inicio
+11. en lavado: entrada de agua, calentar agua en el primer ciclo
+12. en lavado: abrir detergente en el segundo ciclo
+13. en todos las etapas: mover paletas
+14. en secado: secar
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity dishwasher_ctrl is
+  port (
+    clk, rst_n : in std_logic;
+    start_stop : in std_logic;
+    fast_cycle : in std_logic;
+    fill_water : out std_logic;
+    heat_water : out std_logic;
+    move_blades : out std_logic;
+    open_detergent : out std_logic;
+    dry : out std_logic
+  );
+end dishwasher_ctrl;
+
+architecture rtl of dishwasher_ctrl is
+  type state_type is (S0, S1, S2, S3, S4, S5, S6, S7);
+  signal state, next_state : state_type;
+begin
+  change_state: process(clk, rst_n)
+  begin
+    if rst_n = '0' then
+      state <= S0;
+    elsif rising_edge(clk) then
+      state <= next_state;
+    end if;
+  end process change_state;
+
+  process(state, start_stop, fast_cycle)
+  begin
+    next_state <= state;
+    case state is
+      when S0 =>
+        if start_stop = '1' then
+          next_state <= S1;
+        end if;
+
+      when S1 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S2;
+        end if;
+
+      when S2 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        elsif fast_cycle = '1' then
+          next_state <= S5;
+        else
+          next_state <= S3;
+        end if;
+
+      when S3 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S4;
+        end if;
+
+      when S4 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S5;
+        end if;
+
+      when S5 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        elsif fast_cycle = '1' then
+          next_state <= S7;
+        else
+          next_state <= S6;
+        end if;
+
+      when S6 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S7;
+        end if;
+
+      when S7 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S0;
+        end if;
+
+      when others =>
+        next_state <= S0;
+    end case;
+  end process;
+
+  process(state)
+  begin
+    fill_water <= '0';
+    heat_water <= '0';
+    move_blades <= '0';
+    open_detergent <= '0';
+    dry <= '0';
+
+    case state is
+      when S1 =>
+        fill_water <= '1';
+        heat_water <= '1';
+        move_blades <= '1';
+      when S2 =>
+        move_blades <= '1';
+        open_detergent <= '1';
+      when S3 | S4 | S5 | S6 =>
+        move_blades <= '1';
+      when S7 =>
+        dry <= '1';
+      when others =>
+        null;
+    end case;
+  end process;
+
+end architecture rtl;
+```
+
+### 12. Diseña un sistema de lavado en VHDL
+
+* **Objetivo**: Codificar en VHDL un sistema de lavado con las siguientes especificaciones:
+
+1. clk: señal de reloj
+2. rst: señal de reset a bajo nivel
+3. dos entradas: inicio/parada (1bit) y encerado (1bit)
+4. entrada: arranque/parada
+5. la entrada de encerado permite la opción de encerar
+6. cinco salidas: riego, aire, rodillo, jabón y encerado
+7. en estado inicial todas las salidas están a 0
+8. desde cualquier estado se vuelve al inicial con arranque/parada a 0 hasta que pase a 1
+9. el lavado tiene cuatro etapas: enjabonado (1 ciclo), rodillos (2 ciclos), enjuague (1 ciclo), secado (1 ciclo)
+10. si hay encerado, se pasará por 2 ciclos antes del final, si no, regresa al estado inicial
+
+```vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity carwash_ctrl is
+  port (
+    clk, rst_n : in std_logic;
+    start_stop : in std_logic;
+    wax_option : in std_logic;
+    soap : out std_logic;
+    rollers : out std_logic;
+    water : out std_logic;
+    air : out std_logic;
+    wax : out std_logic
+  );
+end carwash_ctrl;
+
+architecture rtl of carwash_ctrl is
+  type state_type is (S0, S1, S2, S3, S4, S5, S6, S7);
+  signal state, next_state : state_type;
+begin
+  change_state: process(clk, rst_n)
+  begin
+    if rst_n = '0' then
+      state <= S0;
+    elsif rising_edge(clk) then
+      state <= next_state;
+    end if;
+  end process change_state;
+
+  calc_state: process(state, start_stop, wax_option)
+  begin
+    next_state <= state;
+
+    case state is
+      when S0 =>
+        if start_stop = '1' then
+          next_state <= S1;
+        end if;
+
+      when S1 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S2;
+        end if;
+
+      when S2 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S3;
+        end if;
+
+      when S3 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S4;
+        end if;
+
+      when S4 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S5;
+        end if;
+
+      when S5 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        elsif wax_option = '1' then
+          next_state <= S6;
+        else
+          next_state <= S0;
+        end if;
+
+      when S6 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S7;
+        end if;
+
+      when S7 =>
+        if start_stop = '0' then
+          next_state <= S0;
+        else
+          next_state <= S0;
+        end if;
+
+      when others =>
+        next_state <= S0;
+    end case;
+  end process calc_state_out;
+
+  calc_out: process(state)
+  begin
+    soap <= '0';
+    rollers <= '0';
+    water <= '0';
+    air <= '0';
+    wax <= '0';
+
+    case state is
+      when S1 =>
+        soap <= '1';
+      when S2 | S3 =>
+        rollers <= '1';
+      when S4 =>
+        water <= '1';
+      when S5 =>
+        air <= '1';
+      when S6 | S7 =>
+        wax <= '1';
+      when others =>
+        null;
+    end case;
+  end process calc_out;
+
+end architecture rtl;
+```
