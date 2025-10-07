@@ -221,7 +221,7 @@ end architecture rtl;
 
 * **Objetivo**: Implementa este boceto
 
-![Diagrama del ejercicio 4](./ej4.png)
+![Diagrama del ejercicio 4](./public/ej4.png)
 
 He decidido que las entradas sean de **4 bits** como en el **ejercicio 1**.
 
@@ -297,7 +297,7 @@ z(t) =
 \end{cases}
 $$
 
-![Maquina Mealy de estados del ejercicio 5](./ej5_1.png)
+![Maquina Mealy de estados del ejercicio 5](./public/ej5_1.png)
 
 ```vhdl
 library ieee;
@@ -378,11 +378,11 @@ end architecture rtl;
 
 * **Objetivo**: Completar el cronograma:
 
-![Cronograma del ejercicio 5](./ej5_2.png)
+![Cronograma del ejercicio 5](./public/ej5_2.png)
 
 ### 6. Sobre una FSM Mealy
 
-![FSM Mealy del ejercicio 6](./ej6_1.png)
+![FSM Mealy del ejercicio 6](./public/ej6_1.png)
 
 * **Objetivo**: Reconoce el patrón detectado
 
@@ -471,7 +471,7 @@ end architecture rtl;
 
 * **Objetivo**: Completar el cronograma:
 
-![Cronograma del ejercicio 6](./ej6_2.png)
+![Cronograma del ejercicio 6](./public/ej6_2.png)
 
 ### 7. Codifica un desplazador en VHDL
 
@@ -517,9 +517,9 @@ end architecture rtl;
 
 ### 8. Dibuja una descripción RTL equivalente del circuito en VHDL
 
-![Estructura del ejercicio 8](./ej8_1.png)
+![Estructura del ejercicio 8](./public/ej8_1.png)
 
-![Diagrama RTL del ejercicio 8](./ej8_2.png)
+![Diagrama RTL del ejercicio 8](./public/ej8_2.png)
 
 ### 9. Codifica una FSM sintetizable en VHDL
 
@@ -588,7 +588,7 @@ end architecture rtl;
 
 * **Objetivo**: Implementar en VHDL este diagrama de una máquina Mealy
 
-![FSM Mealy del ejercicio 10](./ej10.png)
+![FSM Mealy del ejercicio 10](./public/ej10.png)
 
 ```vhdl
 entity seq_detector is
